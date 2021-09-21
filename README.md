@@ -7,7 +7,7 @@ and `*.ldb` format table.
 
 Recommended Package imports:
 
-```java
+```java   
 import org.iq80.leveldb.*;
 import org.nukkit.leveldb.*;
 
@@ -133,7 +133,7 @@ DB db = factory.open(new File("example"), options);
 Getting approximate sizes.
 
 ```java   
-long[]sizes = db.getApproximateSizes(new Range(bytes("a"),bytes("k")), new Range(bytes("k"),bytes("z")));
+long[] sizes = db.getApproximateSizes(new Range(bytes("a"),bytes("k")), new Range(bytes("k"),bytes("z")));
 System.out.println("Size: " + sizes[0] + ", " + sizes[1]);
 ```
 
