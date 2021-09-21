@@ -15,7 +15,8 @@
 
     <name>Nukkit/LevelDB</name>
     <url>https://nukkit.org/</url>
-    <description>Nukkit-LevelDB is built on the top of Dain's LevelDB port to Java with the support of Zlib.</description>
+    <description>Nukkit-LevelDB is built on the top of Dain's LevelDB port to Java with the support of Zlib.
+    </description>
 
     <scm>
         <connection>scm:git@github.com:NukkitReborn/nukkit-leveldb.git</connection>

@@ -19,10 +19,7 @@
 package org.iq80.leveldb.table;
 
 import com.google.common.base.Throwables;
-import org.iq80.leveldb.util.PureJavaCrc32C;
-import org.iq80.leveldb.util.Slice;
-import org.iq80.leveldb.util.Slices;
-import org.iq80.leveldb.util.Snappy;
+import org.iq80.leveldb.util.*;
 import org.nukkit.leveldb.ExtendedCompressionType;
 import org.nukkit.leveldb.ExtendedOptions;
 
@@ -160,18 +157,39 @@ public class ExtendedTableBuilder {
         // attempt to compress the block
         Slice blockContents = raw;
         ExtendedCompressionType blockCompressionType = ExtendedCompressionType.NONE;
-        if (compressionType == ExtendedCompressionType.SNAPPY) {
-            ensureCompressedOutputCapacity(maxCompressedLength(raw.length()));
-            try {
-                int compressedSize = Snappy.compress(raw.getRawArray(), raw.getRawOffset(), raw.length(), compressedOutput.getRawArray(), 0);
+        switch (compressionType) {
+            case SNAPPY: {
+                ensureCompressedOutputCapacity(maxCompressedLength(raw.length()));
+                try {
+                    int compressedSize = Snappy.compress(raw.getRawArray(), raw.getRawOffset(), raw.length(), compressedOutput.getRawArray(), 0);
 
-                // Don't use the compressed data if compressed less than 12.5%,
-                if (compressedSize < raw.length() - (raw.length() / 8)) {
-                    blockContents = compressedOutput.slice(0, compressedSize);
-                    blockCompressionType = ExtendedCompressionType.SNAPPY;
+                    // Don't use the compressed data if compressed less than 12.5%,
+                    if (compressedSize < raw.length() - (raw.length() / 8)) {
+                        blockContents = compressedOutput.slice(0, compressedSize);
+                        blockCompressionType = ExtendedCompressionType.SNAPPY;
+                    }
+                } catch (IOException ignored) {
+                    // compression failed, so just store uncompressed form
                 }
-            } catch (IOException ignored) {
-                // compression failed, so just store uncompressed form
+                break;
+            }
+            case ZLIB: {
+                ensureCompressedOutputCapacity(Zlib.maxCompressedLength(raw.length()));
+                try {
+                    Zlib.compress(raw.getRawArray(), raw.getRawOffset(), raw.length(), compressedOutput.getRawArray(), 0);
+                } catch (IOException ignored) {
+                    // compression failed, so just store uncompressed form
+                }
+                break;
+            }
+            case ZLIB_RAW: {
+                ensureCompressedOutputCapacity(Zlib.maxCompressedLength(raw.length()));
+                try {
+                    Zlib.compressRaw(raw.getRawArray(), raw.getRawOffset(), raw.length(), compressedOutput.getRawArray(), 0);
+                } catch (IOException ignored) {
+                    // compression failed, so just store uncompressed form
+                }
+                break;
             }
         }
 

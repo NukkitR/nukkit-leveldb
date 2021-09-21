@@ -50,10 +50,6 @@ public class ExtendedFilename {
         return String.format("%06d.%s", number, suffix);
     }
 
-    private static String removePrefix(String value, String prefix) {
-        return value.substring(prefix.length());
-    }
-
     private static String removeSuffix(String value, String suffix) {
         return value.substring(0, value.length() - suffix.length());
     }

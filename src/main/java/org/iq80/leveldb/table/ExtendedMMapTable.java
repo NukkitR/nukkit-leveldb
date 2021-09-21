@@ -19,7 +19,6 @@
 package org.iq80.leveldb.table;
 
 import org.iq80.leveldb.util.*;
-import org.nukkit.leveldb.ExtendedCompressionType;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -90,19 +89,40 @@ public class ExtendedMMapTable extends Table {
         // decompress data
         Slice uncompressedData;
         ByteBuffer uncompressedBuffer = read(this.data, (int) blockHandle.getOffset(), blockHandle.getDataSize());
-        if (blockTrailer.getCompressionType() == ExtendedCompressionType.SNAPPY) {
-            synchronized (ExtendedMMapTable.class) {
-                int uncompressedLength = uncompressedLength(uncompressedBuffer);
-                if (uncompressedScratch.capacity() < uncompressedLength) {
-                    uncompressedScratch = ByteBuffer.allocateDirect(uncompressedLength);
-                }
-                uncompressedScratch.clear();
+        switch (blockTrailer.getCompressionType()) {
+            case SNAPPY: {
+                synchronized (ExtendedMMapTable.class) {
+                    int uncompressedLength = uncompressedLength(uncompressedBuffer);
+                    if (uncompressedScratch.capacity() < uncompressedLength) {
+                        uncompressedScratch = ByteBuffer.allocateDirect(uncompressedLength);
+                    }
+                    uncompressedScratch.clear();
 
-                Snappy.uncompress(uncompressedBuffer, uncompressedScratch);
-                uncompressedData = Slices.copiedBuffer(uncompressedScratch);
+                    Snappy.uncompress(uncompressedBuffer, uncompressedScratch);
+                    uncompressedData = Slices.copiedBuffer(uncompressedScratch);
+                }
+                break;
             }
-        } else {
-            uncompressedData = Slices.copiedBuffer(uncompressedBuffer);
+            case ZLIB: {
+                synchronized (ExtendedMMapTable.class) {
+                    uncompressedScratch.clear();
+                    uncompressedScratch = Zlib.uncompress(uncompressedBuffer, uncompressedScratch);
+                    uncompressedData = Slices.copiedBuffer(uncompressedScratch);
+                    break;
+                }
+            }
+            case ZLIB_RAW: {
+                synchronized (ExtendedMMapTable.class) {
+                    uncompressedScratch.clear();
+                    uncompressedScratch = Zlib.uncompressRaw(uncompressedBuffer, uncompressedScratch);
+                    uncompressedData = Slices.copiedBuffer(uncompressedScratch);
+                    break;
+                }
+            }
+            case NONE:
+            default: {
+                uncompressedData = Slices.copiedBuffer(uncompressedBuffer);
+            }
         }
 
         return new Block(uncompressedData, comparator);

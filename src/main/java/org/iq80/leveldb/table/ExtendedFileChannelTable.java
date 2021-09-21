@@ -21,7 +21,7 @@ package org.iq80.leveldb.table;
 import org.iq80.leveldb.util.Slice;
 import org.iq80.leveldb.util.Slices;
 import org.iq80.leveldb.util.Snappy;
-import org.nukkit.leveldb.ExtendedCompressionType;
+import org.iq80.leveldb.util.Zlib;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -45,19 +45,40 @@ public class ExtendedFileChannelTable extends FileChannelTable {
 
         ByteBuffer uncompressedBuffer = read(blockHandle.getOffset(), blockHandle.getDataSize());
         Slice uncompressedData;
-        if (blockTrailer.getCompressionType() == ExtendedCompressionType.SNAPPY) {
-            synchronized (ExtendedFileChannelTable.class) {
-                int uncompressedLength = uncompressedLength(uncompressedBuffer);
-                if (uncompressedScratch.capacity() < uncompressedLength) {
-                    uncompressedScratch = ByteBuffer.allocateDirect(uncompressedLength);
-                }
-                uncompressedScratch.clear();
+        switch (blockTrailer.getCompressionType()) {
+            case SNAPPY: {
+                synchronized (ExtendedFileChannelTable.class) {
+                    int uncompressedLength = uncompressedLength(uncompressedBuffer);
+                    if (uncompressedScratch.capacity() < uncompressedLength) {
+                        uncompressedScratch = ByteBuffer.allocateDirect(uncompressedLength);
+                    }
+                    uncompressedScratch.clear();
 
-                Snappy.uncompress(uncompressedBuffer, uncompressedScratch);
-                uncompressedData = Slices.copiedBuffer(uncompressedScratch);
+                    Snappy.uncompress(uncompressedBuffer, uncompressedScratch);
+                    uncompressedData = Slices.copiedBuffer(uncompressedScratch);
+                }
+                break;
             }
-        } else {
-            uncompressedData = Slices.copiedBuffer(uncompressedBuffer);
+            case ZLIB: {
+                synchronized (ExtendedFileChannelTable.class) {
+                    uncompressedScratch.clear();
+                    uncompressedScratch = Zlib.uncompress(uncompressedBuffer, uncompressedScratch);
+                    uncompressedData = Slices.copiedBuffer(uncompressedScratch);
+                    break;
+                }
+            }
+            case ZLIB_RAW: {
+                synchronized (ExtendedFileChannelTable.class) {
+                    uncompressedScratch.clear();
+                    uncompressedScratch = Zlib.uncompressRaw(uncompressedBuffer, uncompressedScratch);
+                    uncompressedData = Slices.copiedBuffer(uncompressedScratch);
+                    break;
+                }
+            }
+            case NONE:
+            default: {
+                uncompressedData = Slices.copiedBuffer(uncompressedBuffer);
+            }
         }
 
         return new Block(uncompressedData, comparator);
