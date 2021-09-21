@@ -1,7 +1,7 @@
 package org.nukkit.leveldb;
 
-import org.iq80.leveldb.impl.BedrockDB;
 import org.iq80.leveldb.DB;
+import org.iq80.leveldb.impl.BedrockDB;
 import org.iq80.leveldb.impl.DbImpl;
 import org.iq80.leveldb.impl.Iq80DBFactory;
 
