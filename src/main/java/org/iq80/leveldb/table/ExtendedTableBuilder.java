@@ -18,7 +18,6 @@
 
 package org.iq80.leveldb.table;
 
-import com.google.common.base.Throwables;
 import org.iq80.leveldb.util.*;
 import org.nukkit.leveldb.ExtendedCompressionType;
 import org.nukkit.leveldb.ExtendedOptions;
@@ -72,7 +71,7 @@ public class ExtendedTableBuilder {
         try {
             checkState(position == fileChannel.position(), "Expected position %s to equal fileChannel.position %s", position, fileChannel.position());
         } catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw new RuntimeException(e);
         }
 
         this.fileChannel = fileChannel;

@@ -128,6 +128,9 @@ public class Zlib {
         }
     }
 
+    private static final int CALCULATE_THRESHOLD = 4 * 1024 * 1024;// 4 MiB page
+    private static final int MAX_CAPACITY = Integer.MAX_VALUE - 1;
+
     protected static ByteBuffer prepareDecompressBuffer(ByteBuffer buffer, int preferredSize) {
         if (buffer == null) {
             return ByteBuffer.allocateDirect(preferredSize);
@@ -138,10 +141,10 @@ public class Zlib {
 
         // we need to grow the bytebuffer
         if (minNewCapacity > oldCapacity) {
-            if (minNewCapacity >= Integer.MAX_VALUE) {
-                throw new IllegalStateException("Decompression buffer has reached maximum size: " + Integer.MAX_VALUE);
+            if (minNewCapacity >= MAX_CAPACITY) {
+                throw new IllegalStateException("Decompression buffer has reached maximum size: " + MAX_CAPACITY);
             }
-            final int threshold = 4 * 1024 * 1024;// 4 MiB page
+            final int threshold = CALCULATE_THRESHOLD;
             int newCapacity;
 
             if (minNewCapacity == threshold) {
@@ -158,9 +161,9 @@ public class Zlib {
             }
 
             ByteBuffer newBuffer = ByteBuffer.allocateDirect(newCapacity);
-            buffer.position(0);
-            newBuffer.position(0);
-            newBuffer.put(buffer);
+            buffer.position(0).limit(oldCapacity);
+            newBuffer.position(0).limit(oldCapacity);
+            newBuffer.put(buffer).clear();
             return newBuffer;
         }
         return buffer;

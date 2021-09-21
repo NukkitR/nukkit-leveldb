@@ -128,9 +128,12 @@ public class ExtendedMMapTable extends Table {
         return new Block(uncompressedData, comparator);
     }
 
-    public static ByteBuffer read(MappedByteBuffer data, int offset, int length)
-            throws IOException {
+    public static ByteBuffer read(MappedByteBuffer data, int offset, int length) throws IOException {
         int newPosition = data.position() + offset;
-        return data.duplicate().order(ByteOrder.LITTLE_ENDIAN).clear().limit(newPosition + length).position(newPosition);
+        ByteBuffer buffer = data.duplicate().order(ByteOrder.LITTLE_ENDIAN);
+        buffer.clear();
+        buffer.limit(newPosition + length);
+        buffer.position(newPosition);
+        return buffer;
     }
 }

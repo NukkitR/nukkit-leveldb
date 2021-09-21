@@ -18,7 +18,6 @@
 
 package org.iq80.leveldb.impl;
 
-import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.iq80.leveldb.*;
 import org.iq80.leveldb.impl.Filename.FileInfo;
@@ -627,7 +626,7 @@ public class BedrockDB implements DB {
                 try {
                     log.addRecord(record, options.sync());
                 } catch (IOException e) {
-                    throw Throwables.propagate(e);
+                    throw new RuntimeException(e);
                 }
 
                 // Update memtable
