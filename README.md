@@ -1,6 +1,6 @@
 # Nukkit-LevelDB
 
-Based on the of Dain's [LevelDB](https://github.com/dain/leveldb) port to Java with the support of Zlib compression
+Based on Dain's [LevelDB](https://github.com/dain/leveldb) port to Java with the support of Zlib compression
 and `*.ldb` format table.
 
 ## API Usage:
