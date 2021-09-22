@@ -10,9 +10,7 @@ Recommended Package imports:
 ```java   
 import org.iq80.leveldb.*;
 import org.nukkit.leveldb.*;
-
 import static org.nukkit.leveldb.BedrockDBFactory.*;
-
 import java.io.*;
 ```
 
